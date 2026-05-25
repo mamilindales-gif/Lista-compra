@@ -444,27 +444,30 @@ document.getElementById('btn-logout').onclick = async () => {
 document.getElementById('btn-google-login').onclick = async () => {
   await sb.auth.signInWithOAuth({
     provider: 'google',
-    options: { redirectTo: window.location.href }
+    options: { redirectTo: 'https://mamilindales-gif.github.io/Lista-compra/lista-compra.html' }
   });
 };
 
 // Init
 async function initAuth() {
-  // Handle token from URL hash after OAuth redirect
-  if (window.location.hash && window.location.hash.includes('access_token')) {
-    const { data, error } = await sb.auth.getSessionFromUrl();
-    if (data?.session) {
-      currentUser = data.session.user;
-      // Clean URL
-      history.replaceState(null, '', window.location.pathname);
-      document.getElementById('login-screen').style.display = 'none';
-      document.getElementById('app-screen').style.display = 'block';
-      await loadFromCloud();
-      return;
+  const hash = window.location.hash;
+  if (hash && hash.includes('access_token')) {
+    const params = new URLSearchParams(hash.substring(1));
+    const accessToken = params.get('access_token');
+    const refreshToken = params.get('refresh_token');
+    if (accessToken) {
+      const { data } = await sb.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+      if (data?.session) {
+        currentUser = data.session.user;
+        history.replaceState(null, '', window.location.pathname);
+        document.getElementById('login-screen').style.display = 'none';
+        document.getElementById('app-screen').style.display = 'block';
+        await loadFromCloud();
+        return;
+      }
     }
   }
 
-  // Check existing session
   const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
     currentUser = session.user;
