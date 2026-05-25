@@ -449,7 +449,23 @@ document.getElementById('btn-google-login').onclick = async () => {
 };
 
 // Init
-sb.auth.onAuthStateChange(async (event, session) => {
+async function initAuth() {
+  // Handle token from URL hash after OAuth redirect
+  if (window.location.hash && window.location.hash.includes('access_token')) {
+    const { data, error } = await sb.auth.getSessionFromUrl();
+    if (data?.session) {
+      currentUser = data.session.user;
+      // Clean URL
+      history.replaceState(null, '', window.location.pathname);
+      document.getElementById('login-screen').style.display = 'none';
+      document.getElementById('app-screen').style.display = 'block';
+      await loadFromCloud();
+      return;
+    }
+  }
+
+  // Check existing session
+  const { data: { session } } = await sb.auth.getSession();
   if (session?.user) {
     currentUser = session.user;
     document.getElementById('login-screen').style.display = 'none';
@@ -459,7 +475,16 @@ sb.auth.onAuthStateChange(async (event, session) => {
     document.getElementById('login-screen').style.display = 'flex';
     document.getElementById('app-screen').style.display = 'none';
   }
+}
+
+sb.auth.onAuthStateChange(async (event, session) => {
+  if (event === 'SIGNED_OUT') {
+    document.getElementById('login-screen').style.display = 'flex';
+    document.getElementById('app-screen').style.display = 'none';
+  }
 });
+
+initAuth();
 </script>
 </body>
 </html>
