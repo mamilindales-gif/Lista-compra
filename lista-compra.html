@@ -436,9 +436,8 @@ document.getElementById('btn-clear-all').onclick = () => {
 };
 
 document.getElementById('btn-logout').onclick = async () => {
+  if (!confirm('¿Cerrar sesión? La próxima vez tendrás que volver a entrar con Google.')) return;
   await sb.auth.signOut();
-  document.getElementById('app-screen').style.display = 'none';
-  document.getElementById('login-screen').style.display = 'flex';
 };
 
 document.getElementById('btn-google-login').onclick = async () => {
